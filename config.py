@@ -7,7 +7,7 @@ def getoption(Word2vecmodel="/home/ste/word2vec-for-wiki-master/wiki.model.300d.
     option = {}
     option["Word2vecmodel"] = Word2vecmodel  # word2vec模型地址
     option["notraindata"] = notraindata  # 未处理的训练集地址
-    option["aftertraindata"] = aftertraindata  # 分好词的训练集地址
+    option["aftertraindata"] = aftertraindata  # 分好词并且转化成了index的训练集地址
     option["word_index_dict"] = word_index_dict  # key为单词,value为编号的字典
     option["index_word_dict"] = index_word_dict  # key为单词,value为编号的字典
 
