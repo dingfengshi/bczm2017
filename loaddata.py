@@ -46,7 +46,7 @@ class loaddata:
 
     def pro_traingset(self):
         # 把每个句子中的单词数字化并保存在文件中
-        fin = open(self.conf["notraindata"], "r", encoding="utf-8")
+        fin = open(self.conf["notraindata"], "r",encoding="utf-8")
         fout1 = open(self.conf["aftertraindata1"], 'wb')
         fout2 = open(self.conf["aftertraindata2"], 'wb')
         fout3 = open(self.conf["aftertraindata_flag"], 'wb')
@@ -64,14 +64,14 @@ class loaddata:
                 if word in word_index_dict:
                     vec1.append(word_index_dict[word])
                 else:
-                    vec1.append(word_index_dict[u"测试"])
+                    vec1.append(9999999)
             words = list(jieba.cut(sen2))
             self.padding(words)
             for word in words:
                 if word in word_index_dict:
                     vec2.append(word_index_dict[word])
                 else:
-                    vec2.append(word_index_dict[u"测试"])
+                    vec2.append(9999999)
             s1_image.append(np.array(vec1))
             s2_image.append(np.array(vec2))
             flagvec.append(np.array(float(flag)))
@@ -101,16 +101,19 @@ class loaddata:
         maxlen = self.conf['sen_max_len']
         if len(sen1) < maxlen:
             for i in range(maxlen - len(sen1)):
-                sen1.append(u"测试")
+                sen1.append("闊")
 
-    def lookup_table(self, index_word_dict, sen):
+    def lookup_table(self, index_word_dict, sen, start_index, end_index):
         textvec = []
-        for eachsen in sen:
+        for eachsen in sen[start_index:end_index]:
             senvec = []
             i = 0
             for index in eachsen:
                 if i < self.conf["sen_max_len"]:
-                    senvec.append(np.array(self.model[index_word_dict[index]]))
+                    if int(index) != 9999999:
+                        senvec.append(self.model[index_word_dict[index]])
+                    else:
+                        senvec.append(np.zeros((self.conf["word2vec_dim"])))
                     i = i + 1
             sentens = np.array(senvec)
             textvec.append(np.array(sentens))
