@@ -1,25 +1,31 @@
+# -*- coding:utf-8 -*-
+
 import gensim
 import config
 import jieba
-import pickle
+import tensorflow as tf
+
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+import numpy as np
 
 
 class loaddata:
     def __init__(self):
         self.conf = config.getoption()
+        self.model = gensim.models.Word2Vec.load(self.conf["Word2vecmodel"])
 
     def loadword(self):
-        model = gensim.models.Word2Vec.load(self.conf["Word2vecmodel"])
-        vocab = model.wv.vocab
-        return model, vocab
+        vocab = self.model.wv.vocab
+        return vocab
 
     def create_index_vocab(self):
-        model, vocab = self.loadword()
+        vocab = self.loadword()
         index_word_dict = {}
         word_index_dict = {}
-        i = 1
-        index_word_dict[0] = "UNK"
-        word_index_dict["UNK"] = 0
+        i = 0
         for key in vocab.keys():
             index_word_dict[i] = key
             word_index_dict[key] = i
@@ -40,30 +46,73 @@ class loaddata:
 
     def pro_traingset(self):
         # 把每个句子中的单词数字化并保存在文件中
-        fin = open(self.conf["notraindata"])
-        fout = open(self.conf["aftertraindata"], 'wb')
+        fin = open(self.conf["notraindata"], "r", encoding="utf-8")
+        fout1 = open(self.conf["aftertraindata1"], 'wb')
+        fout2 = open(self.conf["aftertraindata2"], 'wb')
+        fout3 = open(self.conf["aftertraindata_flag"], 'wb')
         word_index_dict, index_word_dict = self.get_index_vocab()
+        s1_image = []
+        s2_image = []
+        flagvec = []
         for line in fin.readlines():
             flag, sen1, sen2 = line.split('\t')
-            words = jieba.cut(sen1)
+            vec1 = []
+            vec2 = []
+            words = list(jieba.cut(sen1))
+            self.padding(words)
             for word in words:
-                if word_index_dict.has_key(word):
-                    fout.write(word_index_dict[word] + ' ')
+                if word in word_index_dict:
+                    vec1.append(word_index_dict[word])
                 else:
-                    fout.write(str(0) + ' ')
-            fout.write('\t')
-            words = jieba.cut(sen2)
+                    vec1.append(word_index_dict[u"测试"])
+            words = list(jieba.cut(sen2))
+            self.padding(words)
             for word in words:
-                if word_index_dict.has_key(word):
-                    fout.write(word_index_dict[word] + ' ')
+                if word in word_index_dict:
+                    vec2.append(word_index_dict[word])
                 else:
-                    fout.write(str(0) + ' ')
-            fout.write('\n')
-        fin.close()
-        fout.close()
+                    vec2.append(word_index_dict[u"测试"])
+            s1_image.append(np.array(vec1))
+            s2_image.append(np.array(vec2))
+            flagvec.append(np.array(float(flag)))
+        s1_image = np.array(s1_image)
+        s2_image = np.array(s2_image)
+        flagvec = np.array(flagvec, dtype='float32')
 
+        pickle.dump(s1_image, fout1)
+        pickle.dump(s2_image, fout2)
+        pickle.dump(flagvec, fout3)
+        fin.close()
+        fout1.close()
+        fout2.close()
+        fout3.close()
 
     def get_aftertraindata(self):
-        fin=open(self.conf["aftertraindata"], 'rb')
+        # 取出已经保存好的输入张量
+        with open(self.conf["aftertraindata1"], 'rb') as f1:
+            s1_image = pickle.load(f1)
+        with open(self.conf["aftertraindata2"], 'rb') as f2:
+            s2_image = pickle.load(f2)
+        with open(self.conf["aftertraindata_flag"], 'rb') as f3:
+            flagvec = pickle.load(f3)
+        return s1_image, s2_image, flagvec
 
-        fin.close()
+    def padding(self, sen1):
+        maxlen = self.conf['sen_max_len']
+        if len(sen1) < maxlen:
+            for i in range(maxlen - len(sen1)):
+                sen1.append(u"测试")
+
+    def lookup_table(self, index_word_dict, sen):
+        textvec = []
+        for eachsen in sen:
+            senvec = []
+            i = 0
+            for index in eachsen:
+                if i < self.conf["sen_max_len"]:
+                    senvec.append(np.array(self.model[index_word_dict[index]]))
+                    i = i + 1
+            sentens = np.array(senvec)
+            textvec.append(np.array(sentens))
+        texttens = np.array(textvec)
+        return texttens

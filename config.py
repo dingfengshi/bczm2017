@@ -1,14 +1,33 @@
-def getoption(Word2vecmodel="/home/ste/word2vec-for-wiki-master/wiki.model.300d.model",
-              notraindata="/home/ste/word2vec-for-wiki-master/BoP2017-DBQA.train.txt",
-              aftertraindata="/home/ste/word2vec-for-wiki-master/BoPcut.train.txt",
-              word_index_dict="/home/ste/cnn/w_i_d.pkl",
-              index_word_dict="/home/ste/cnn/i_w_d.pkl"
+def getoption(Word2vecmodel="E:/word2vec/wiki.model.300d.model",
+              notraindata="E:/word2vec/BoP2017-DBQA.dev.txt",
+              aftertraindata1="E:/word2vec/BoPcut.dev.train.1.txt",
+              aftertraindata2="E:/word2vec/BoPcut.dev.train.2.txt",
+              aftertraindata_flag="E:/word2vec/BoPcut.dev.train.flag.txt",
+              word_index_dict="E:/word2vec/w_i_d.pkl",
+              index_word_dict="E:/word2vec/i_w_d.pkl",
+              sen_max_len=30,
+              word2vec_dim=300,
+              LSTM_unit=200,
+              DENSE_unit=200,
+              epoch=1,
+              batch_size=50,
+              save_to="",
+              ans_save_to=""
               ):
     option = {}
     option["Word2vecmodel"] = Word2vecmodel  # word2vec模型地址
     option["notraindata"] = notraindata  # 未处理的训练集地址
-    option["aftertraindata"] = aftertraindata  # 分好词并且转化成了index的训练集地址
+    option["aftertraindata1"] = aftertraindata1  # 处理过的line1
+    option["aftertraindata2"] = aftertraindata2  # 处理过的line2
+    option["aftertraindata_flag"] = aftertraindata_flag  # 处理过的flag
     option["word_index_dict"] = word_index_dict  # key为单词,value为编号的字典
-    option["index_word_dict"] = index_word_dict  # key为单词,value为编号的字典
-
+    option["index_word_dict"] = index_word_dict  # key为编号,value为单词的字典
+    option["sen_max_len"] = sen_max_len  # 训练集中最长的句子长度
+    option["word2vec_dim"] = word2vec_dim  # word2vec向量的长度
+    option["LSTM_unit"] = LSTM_unit  # LSTM内单元数目
+    option["DENSE_unit"] = DENSE_unit  # 全连接层单元数目
+    option["epoch"] = epoch  # 数据被轮几次
+    option["batch_size"] = batch_size  # 每个批次的数量
+    option["save_to"] = save_to  # 模型保存位置
+    option["ans_save_to"] = ans_save_to  # 结果保存位置
     return option
