@@ -1,19 +1,20 @@
 def getoption(Word2vecmodel="E:/word2vec/wiki.model.300d.model",
-              notraindata="E:/word2vec/BoP2017-DBQA.train.txt",
-              aftertraindata1="E:/word2vec/BoPcut.train.all.1.txt",
-              aftertraindata2="E:/word2vec/BoPcut.train.all.2.txt",
-              aftertraindata_flag="E:/word2vec/BoPcut.train.all.flag.txt",
+              notraindata="E:/word2vec/result.txt",
+              aftertraindata1="E:/word2vec/rep.1",
+              aftertraindata2="E:/word2vec/rep.2",
+              aftertraindata_flag="E:/word2vec/rep.flag",
               word_index_dict="E:/word2vec/w_i_d.pkl",
               index_word_dict="E:/word2vec/i_w_d.pkl",
-              sen_max_len=50,
+              sen_max_len=40,
               word2vec_dim=300,
-              LSTM_unit=256,
-              LSTM_unit2=256,
+              LSTM_unit=512,
+              LSTM_unit2=512,
               DENSE_unit=1024,
-              epoch=1,
+              epoch=100,
               batch_size=64,
-              save_to="E:/word2vec/model_double_lstm",
-              ans_save_to="E:/word2vec/ans.txt"
+              save_to="E:/word2vec/model",
+              ans_save_to="E:/word2vec/ans.txt",
+              split_batch=10
               ):
     option = {}
     option["Word2vecmodel"] = Word2vecmodel  # word2vec模型地址
@@ -32,4 +33,5 @@ def getoption(Word2vecmodel="E:/word2vec/wiki.model.300d.model",
     option["batch_size"] = batch_size  # 每个批次的数量
     option["save_to"] = save_to  # 模型保存位置
     option["ans_save_to"] = ans_save_to  # 结果保存位置
+    option["split_batch"] = split_batch  # 结果保存位置
     return option

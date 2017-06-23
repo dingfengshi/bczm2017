@@ -44,64 +44,72 @@ class loaddata:
             index_word_dict = pickle.load(f2)
         return word_index_dict, index_word_dict
 
-    def pro_traingset(self):
+    def pro_traingset(self, has_flag):
         # 把每个句子中的单词数字化并保存在文件中
-        fin = open(self.conf["notraindata"], "r",encoding="utf-8")
+        fin = open(self.conf["notraindata"], "r", encoding="utf-8")
         fout1 = open(self.conf["aftertraindata1"], 'wb')
         fout2 = open(self.conf["aftertraindata2"], 'wb')
-        fout3 = open(self.conf["aftertraindata_flag"], 'wb')
+        if has_flag:
+            fout3 = open(self.conf["aftertraindata_flag"], 'wb')
         word_index_dict, index_word_dict = self.get_index_vocab()
         s1_image = []
         s2_image = []
         flagvec = []
         for line in fin.readlines():
-            flag, sen1, sen2 = line.split('\t')
+            if has_flag:
+                flag, sen1, sen2 = line.split('\t')
+            else:
+                sen1, sen2 = line.split('\t')
             vec1 = []
             vec2 = []
             words = list(jieba.cut(sen1))
-            self.padding(words)
             for word in words:
                 if word in word_index_dict:
                     vec1.append(word_index_dict[word])
-                else:
-                    vec1.append(9999999)
+            self.padding(vec1)
             words = list(jieba.cut(sen2))
-            self.padding(words)
             for word in words:
                 if word in word_index_dict:
                     vec2.append(word_index_dict[word])
-                else:
-                    vec2.append(9999999)
+            self.padding(vec2)
             s1_image.append(np.array(vec1))
             s2_image.append(np.array(vec2))
-            flagvec.append(np.array(float(flag)))
+            if has_flag:
+                flagvec.append(np.array(float(flag)))
         s1_image = np.array(s1_image)
         s2_image = np.array(s2_image)
-        flagvec = np.array(flagvec, dtype='float32')
+        if has_flag:
+            flagvec = np.array(flagvec, dtype='float32')
 
         pickle.dump(s1_image, fout1)
         pickle.dump(s2_image, fout2)
-        pickle.dump(flagvec, fout3)
+        if has_flag:
+            pickle.dump(flagvec, fout3)
         fin.close()
         fout1.close()
         fout2.close()
-        fout3.close()
+        if has_flag:
+            fout3.close()
 
-    def get_aftertraindata(self):
+    def get_aftertraindata(self, has_flag):
         # 取出已经保存好的输入张量
         with open(self.conf["aftertraindata1"], 'rb') as f1:
             s1_image = pickle.load(f1)
         with open(self.conf["aftertraindata2"], 'rb') as f2:
             s2_image = pickle.load(f2)
-        with open(self.conf["aftertraindata_flag"], 'rb') as f3:
-            flagvec = pickle.load(f3)
-        return s1_image, s2_image, flagvec
+        if has_flag:
+            with open(self.conf["aftertraindata_flag"], 'rb') as f3:
+                flagvec = pickle.load(f3)
+        if has_flag:
+            return s1_image, s2_image, flagvec
+        else:
+            return s1_image, s2_image
 
     def padding(self, sen1):
         maxlen = self.conf['sen_max_len']
         if len(sen1) < maxlen:
             for i in range(maxlen - len(sen1)):
-                sen1.append("闊")
+                sen1.append(9999999)
 
     def lookup_table(self, index_word_dict, sen, start_index, end_index):
         textvec = []

@@ -1,9 +1,11 @@
+from math import floor
+
 fin = open("E:\word2vec\BoP2017-DBQA.train.txt", encoding="utf-8")
-fout = open("E:\word2vec\select.train.txt", 'w', encoding="utf-8")
+fout = open("E:\word2vec\select.1.5.train.txt", 'w', encoding="utf-8")
 
 
 def selectdata(tempset, posnum):
-    pos = posnum
+    pos = floor(posnum * 1.5)
     for eachdata in tempset:
         _flag = eachdata[0]
         _sen1 = eachdata[1]

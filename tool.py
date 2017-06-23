@@ -10,20 +10,34 @@ def continue_train():
     load = loaddata.loaddata()
     word_index_dict, index_word_dict = load.get_index_vocab()
 
-    s1_image, s2_image, flag_vec = load.get_aftertraindata()
+    s1_image, s2_image, flag_vec = load.get_aftertraindata(has_flag=True)
     datanum = flag_vec.size
 
     print("loading model...\n")
     model = keras.models.load_model(option["save_to"])
 
-    for batch in range(datanum // (option["batch_size"] * 100)):
-        print("第%d个批次" % batch)
-        start = batch * option["batch_size"] * 100
-        end = start + option["batch_size"] * 100
-        s1_image_batch = load.lookup_table(index_word_dict, s1_image, start, end)
-        s2_image_batch = load.lookup_table(index_word_dict, s2_image, start, end)
-        model.fit([s1_image_batch, s2_image_batch], flag_vec[start:end], epochs=option["epoch"],
-                  batch_size=option["batch_size"])
+    batchnum = datanum // (option["batch_size"] * option["split_batch"])
+
+    for epoch in range(option["epoch"]):
+        for batch in range(batchnum):
+            print("epoch%d,第%d个批次" % (epoch, batch))
+            start = batch * option["batch_size"] * option["split_batch"]
+            end = start + option["batch_size"] * option["split_batch"]
+            s1_image_batch = load.lookup_table(index_word_dict, s1_image, start, end)
+            s2_image_batch = load.lookup_table(index_word_dict, s2_image, start, end)
+            model.fit([s1_image_batch, s2_image_batch], flag_vec[start:end], epochs=1,
+                      batch_size=option["batch_size"])
+
+        s1_image_batch = load.lookup_table(index_word_dict, s1_image,
+                                           batchnum * option["batch_size"] * option["split_batch"], datanum)
+        s2_image_batch = load.lookup_table(index_word_dict, s2_image,
+                                           batchnum * option["batch_size"] * option["split_batch"], datanum)
+        model.fit([s1_image_batch, s2_image_batch],
+                  flag_vec[batchnum * option["batch_size"] * option["split_batch"]:datanum],
+                  epochs=1,
+                  batch_size=option["batch_size"],
+                  shuffle=True)
+        print("save model...\n")
         model.save(option["save_to"])
 
 
@@ -34,26 +48,28 @@ def get_ans():
     load = loaddata.loaddata()
     word_index_dict, index_word_dict = load.get_index_vocab()
 
-    s1_image, s2_image, flag_vec = load.get_aftertraindata()
-    datanum = flag_vec.size
+    s1_image, s2_image = load.get_aftertraindata(has_flag=False)
+    datanum = s1_image.__len__()
 
     print("loading model...\n")
     model = keras.models.load_model(option["save_to"])
 
-    batchnum = datanum // (option["batch_size"] * 100)
+    batchnum = datanum // (option["batch_size"] * option["split_batch"])
 
     for batch in range(batchnum):
         print("第%d个批次" % batch)
-        start = batch * option["batch_size"] * 100
-        end = start + option["batch_size"] * 100
+        start = batch * option["batch_size"] * option["split_batch"]
+        end = start + option["batch_size"] * option["split_batch"]
         s1_image_batch = load.lookup_table(index_word_dict, s1_image, start, end)
         s2_image_batch = load.lookup_table(index_word_dict, s2_image, start, end)
         ans = model.predict([s1_image_batch, s2_image_batch])
         for each in ans.flatten():
             fout.write(str(each) + '\n')
 
-    s1_image_batch = load.lookup_table(index_word_dict, s1_image, batchnum * option["batch_size"] * 100, datanum)
-    s2_image_batch = load.lookup_table(index_word_dict, s2_image, batchnum * option["batch_size"] * 100, datanum)
+    s1_image_batch = load.lookup_table(index_word_dict, s1_image,
+                                       batchnum * option["batch_size"] * option["split_batch"], datanum)
+    s2_image_batch = load.lookup_table(index_word_dict, s2_image,
+                                       batchnum * option["batch_size"] * option["split_batch"], datanum)
     ans = model.predict([s1_image_batch, s2_image_batch])
     for each in ans.flatten():
         fout.write(str(each) + '\n')
